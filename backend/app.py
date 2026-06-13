@@ -11,7 +11,7 @@ from flask_cors import CORS
 from mysql.connector import Error
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from db_config import get_db_connection
+from backend.db_config import get_db_connection
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend"))
