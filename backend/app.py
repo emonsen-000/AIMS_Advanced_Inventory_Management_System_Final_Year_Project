@@ -19,8 +19,8 @@ FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "frontend"))
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 app.secret_key = os.getenv("SECRET_KEY", "change-this-secret-key-in-production")
 app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE="None",
 )
 CORS(app, supports_credentials=True)
 
@@ -597,4 +597,4 @@ def supplier_analytics():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
