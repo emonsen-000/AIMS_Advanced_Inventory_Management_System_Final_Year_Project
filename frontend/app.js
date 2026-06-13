@@ -1,5 +1,5 @@
-const API_BASE_URL = window.location.origin.includes('5000')
-    ? '/api'
+const API_BASE_URL = window.location.origin.includes('onrender.com')
+    ? 'https://YOUR-RENDER-APP.onrender.com/api'
     : 'http://127.0.0.1:5000/api';
 
 let products = [];
