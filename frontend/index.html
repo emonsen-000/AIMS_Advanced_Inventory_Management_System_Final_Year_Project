@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Inventory Management System</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <section id="login-screen" class="login-screen">
+        <form id="login-form" class="login-card">
+            <div class="brand-icon login-brand-icon">A</div>
+            <h1>AIMS Login</h1>
+            <p>Authorized inventory users only</p>
+            <label>Username<input id="login-username" required autocomplete="username" placeholder="admin" /></label>
+            <label>Password<input id="login-password" type="password" required autocomplete="current-password" placeholder="Enter password" /></label>
+            <button type="submit" class="primary-btn full-width">Login</button>
+            <small id="login-message"></small>
+        </form>
+    </section>
+
+    <div class="app-layout hidden" id="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">A</div>
+                <div>
+                    <h1>AIMS</h1>
+                    <p>Inventory Intelligence</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-link active" data-section="dashboard-section">Dashboard</button>
+                <button class="nav-link" data-section="products-section">Products</button>
+                <button class="nav-link" data-section="suppliers-section">Suppliers</button>
+                <button class="nav-link" data-section="movements-section">Stock Movements</button>
+                <button class="nav-link" data-section="analytics-section">Prediction & Analytics</button>
+                <button class="nav-link admin-only hidden" data-section="users-section">User Access</button>
+            </nav>
+
+            <div class="sidebar-card">
+                <span class="status-dot"></span>
+                <div>
+                    <strong>Localhost Mode</strong>
+                    <p>Flask + MySQL</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">R&amp;D Based ADBMS Project</p>
+                    <h2 id="page-title">Advanced Inventory Management System</h2>
+                </div>
+                <div class="topbar-actions">
+                    <span class="user-chip" id="current-user-chip">Not logged in</span>
+                    <button class="secondary-btn" id="logout-button">Logout</button>
+                    <button class="secondary-btn" id="refresh-button">Refresh Data</button>
+                    <span class="connection-badge" id="connection-status">Checking...</span>
+                </div>
+            </header>
+
+            <section id="dashboard-section" class="page-section active-section">
+                <div class="metric-grid">
+                    <article class="metric-card">
+                        <span>Total Products</span>
+                        <strong id="total-products">0</strong>
+                        <p>Items stored in inventory</p>
+                    </article>
+                    <article class="metric-card danger">
+                        <span>Low Stock</span>
+                        <strong id="low-stock-items">0</strong>
+                        <p>Products below reorder level</p>
+                    </article>
+                    <article class="metric-card">
+                        <span>Suppliers</span>
+                        <strong id="total-suppliers">0</strong>
+                        <p>Active supplier records</p>
+                    </article>
+                    <article class="metric-card">
+                        <span>Inventory Value</span>
+                        <strong id="inventory-value">৳0</strong>
+                        <p>Current stock × unit price</p>
+                    </article>
+                </div>
+
+                <div class="content-grid two-columns">
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Low Stock Alerts</h3>
+                                <p>Items that need urgent purchase planning.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Product</th>
+                                        <th>Stock</th>
+                                        <th>Reorder Level</th>
+                                        <th>Supplier</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="low-stock-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                    <div class="panel-card stock-chart-card">
+                        <h3>Stock Quantity Overview</h3>
+                        <p>Current stock quantity of products in inventory.</p>
+
+                        <div id="stockBarChart" class="stock-bar-chart">
+                         <!-- Bars will be added by JavaScript -->
+                        </div>
+                    </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="products-section" class="page-section">
+                <div class="content-grid form-and-table">
+                    <article class="panel form-panel master-data-form">
+                        <h3 id="product-form-title">Add Product</h3>
+                        <form id="product-form" class="data-form">
+                            <input type="hidden" id="product-id" />
+                            <label>SKU<input id="product-sku" required placeholder="SKU-001" /></label>
+                            <label>Product Name<input id="product-name" required placeholder="Product name" /></label>
+                            <label>Category<input id="product-category" required placeholder="Stationery" /></label>
+                            <label>Current Stock<input id="product-stock" type="number" min="0" required /></label>
+                            <label>Reorder Level<input id="product-reorder" type="number" min="0" required /></label>
+                            <label>Unit Price<input id="product-price" type="number" min="0" step="0.01" required /></label>
+                            <label>Supplier<select id="product-supplier"></select></label>
+                            <div class="form-actions">
+                                <button type="submit" class="primary-btn">Save Product</button>
+                                <button type="button" class="secondary-btn" id="clear-product-form">Clear</button>
+                            </div>
+                        </form>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Product Inventory</h3>
+                                <p>Add, edit, delete, and monitor products.</p>
+                            </div>
+                            <input class="search-input" id="product-search" placeholder="Search product..." />
+                        </div>
+                        <div class="table-wrapper large-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Stock</th>
+                                        <th>Reorder</th>
+                                        <th>Price</th>
+                                        <th>Supplier</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="suppliers-section" class="page-section">
+                <div class="content-grid form-and-table">
+                    <article class="panel form-panel master-data-form">
+                        <h3 id="supplier-form-title">Add Supplier</h3>
+                        <form id="supplier-form" class="data-form">
+                            <input type="hidden" id="supplier-id" />
+                            <label>Supplier Name<input id="supplier-name" required placeholder="Supplier name" /></label>
+                            <label>Contact Person<input id="supplier-contact" placeholder="Contact person" /></label>
+                            <label>Phone<input id="supplier-phone" placeholder="Phone number" /></label>
+                            <label>Email<input id="supplier-email" type="email" placeholder="supplier@email.com" /></label>
+                            <label>Category<input id="supplier-category" required placeholder="Electronics" /></label>
+                            <label>Reliability Rating /10<input id="supplier-reliability" type="number" min="0" max="10" step="0.1" required /></label>
+                            <label>Average Lead Time Days<input id="supplier-lead-time" type="number" min="0" required /></label>
+                            <label>Cost Rating /10<input id="supplier-cost" type="number" min="0" max="10" step="0.1" required /></label>
+                            <div class="form-actions">
+                                <button type="submit" class="primary-btn">Save Supplier</button>
+                                <button type="button" class="secondary-btn" id="clear-supplier-form">Clear</button>
+                            </div>
+                        </form>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Supplier Directory</h3>
+                                <p>Maintain supplier performance information.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrapper large-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Reliability</th>
+                                        <th>Lead Time</th>
+                                        <th>Cost</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="suppliers-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="movements-section" class="page-section">
+                <div class="content-grid form-and-table">
+                    <article class="panel form-panel">
+                        <h3>Record Stock Movement</h3>
+                        <form id="movement-form" class="data-form">
+                            <label>Product<select id="movement-product" required></select></label>
+                            <label>Movement Type
+                                <select id="movement-type" required>
+                                    <option value="IN">IN - Purchase/Restock</option>
+                                    <option value="OUT">OUT - Sale/Issue</option>
+                                </select>
+                            </label>
+                            <label>Quantity<input id="movement-quantity" type="number" min="1" required /></label>
+                            <label>Date<input id="movement-date" type="date" /></label>
+                            <label>Note<textarea id="movement-note" rows="4" placeholder="Short note"></textarea></label>
+                            <button type="submit" class="primary-btn">Save Movement</button>
+                        </form>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Recent Stock Movements</h3>
+                                <p>Every IN/OUT movement updates product stock automatically.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrapper large-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>SKU</th>
+                                        <th>Product</th>
+                                        <th>Type</th>
+                                        <th>Quantity</th>
+                                        <th>Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="movements-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="analytics-section" class="page-section">
+                <div class="content-grid two-columns">
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Stock Prediction</h3>
+                                <p>Simple demand forecasting for reorder decisions.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrapper large-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Stock</th>
+                                        <th>Avg Daily Demand</th>
+                                        <th>Next 7 Days</th>
+                                        <th>Stockout Days</th>
+                                        <th>Recommended Order</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prediction-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Supplier Analytics</h3>
+                                <p>Supplier score = reliability, lead time, and cost performance.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrapper large-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Supplier</th>
+                                        <th>Products</th>
+                                        <th>Value</th>
+                                        <th>Score</th>
+                                        <th>Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="supplier-analytics-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="users-section" class="page-section">
+                <div class="content-grid form-and-table">
+                    <article class="panel form-panel">
+                        <h3>Create User Access</h3>
+                        <form id="user-form" class="data-form">
+                            <label>Username<input id="new-username" required placeholder="staff1" /></label>
+                            <label>Password<input id="new-password" type="password" required placeholder="Temporary password" /></label>
+                            <label>Full Name<input id="new-full-name" placeholder="Employee name" /></label>
+                            <label>Email<input id="new-email" type="email" placeholder="employee@email.com" /></label>
+                            <label>Role
+                                <select id="new-role" required></select>
+                            </label>
+                            <button type="submit" class="primary-btn">Create User</button>
+                        </form>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Authorized Users</h3>
+                                <p>Only Admin can create user accounts and assign roles.</p>
+                            </div>
+                        </div>
+                        <div class="table-wrapper large-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="app.js"></script>
+</body>
+</html>
